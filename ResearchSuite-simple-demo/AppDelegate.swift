@@ -7,18 +7,235 @@
 //
 
 import UIKit
-import CoreData
+import OhmageOMHSDK
+import ResearchSuiteTaskBuilder
+import ResearchSuiteResultsProcessor
+import ResearchSuiteAppFramework
+import Gloss
+import sdlrkx
+
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    var store: RSStore!
+    var ohmageManager: OhmageOMHManager!
+    var taskBuilder: RSTBTaskBuilder!
+    var resultsProcessor: RSRPResultsProcessor!
+    
+    func initializeOhmage(credentialsStore: OhmageOMHSDKCredentialStore) -> OhmageOMHManager {
+        
+        //Initializa OMH client by loading credentials from OMHClient.plist
+        guard let file = Bundle.main.path(forResource: "OMHClient", ofType: "plist") else {
+            fatalError("Could not initialze OhmageManager")
+        }
+        
+        
+        let omhClientDetails = NSDictionary(contentsOfFile: file)
+        
+        guard let baseURL = omhClientDetails?["OMHBaseURL"] as? String,
+            let clientID = omhClientDetails?["OMHClientID"] as? String,
+            let clientSecret = omhClientDetails?["OMHClientSecret"] as? String else {
+                fatalError("Could not initialze OhmageManager")
+        }
+        
+        if let ohmageManager = OhmageOMHManager(baseURL: baseURL,
+                                                clientID: clientID,
+                                                clientSecret: clientSecret,
+                                                queueStorageDirectory: "ohmageSDK",
+                                                store: credentialsStore) {
+            return ohmageManager
+        }
+        else {
+            fatalError("Could not initialze OhmageManager")
+        }
+        
+    }
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        
+        self.store = RSStore()
+        self.ohmageManager = self.initializeOhmage(credentialsStore: self.store)
+        
+        self.taskBuilder = RSTBTaskBuilder(
+            stateHelper: self.store,
+            elementGeneratorServices: AppDelegate.elementGeneratorServices,
+            stepGeneratorServices: AppDelegate.stepGeneratorServices,
+            answerFormatGeneratorServices: AppDelegate.answerFormatGeneratorServices
+        )
+        
+        self.resultsProcessor = RSRPResultsProcessor(
+            frontEndTransformers: AppDelegate.resultsTransformers,
+            backEnd: ORBEManager(ohmageManager: self.ohmageManager)
+        )
+        
+        // Set the boolean "shouldDoDaily" to true in order to launch daily survey
+        self.store.setValueInState(value: true as NSSecureCoding, forKey: "shouldDoDaily")
+
+        // Navigate to correct view controller
+        self.showViewController(animated: false)
+
+        
         return true
     }
+    
+    open func signOut() {
+        
+        self.ohmageManager.signOut { (error) in
+            
+            self.store.reset()
+            
+            DispatchQueue.main.async {
+                self.showViewController(animated: true)
+            }
+            
+        }
+    }
+    
+    open func showViewController(animated: Bool) {
+        
+        //if not signed in, go to sign in screen
+        if !self.ohmageManager.isSignedIn {
+            
+            let storyboard = UIStoryboard(name: "Onboarding", bundle: Bundle.main)
+            let vc = storyboard.instantiateInitialViewController()
+            self.transition(toRootViewController: vc!, animated: animated)
+            
+        }
+            
+        // if signed in, go to main home screen
+        else {
+            
+            let storyboard = UIStoryboard(name: "Main", bundle: Bundle.main)
+            let vc = storyboard.instantiateInitialViewController()
+            self.transition(toRootViewController: vc!, animated: animated)
+            
+        }
+    }
+    
+    // Make sure to include all step generators needed for your survey steps here
+    open class var stepGeneratorServices: [RSTBStepGenerator] {
+        return [
+            RSTBLocationStepGenerator(),
+            CTFOhmageLoginStepGenerator(),
+            RSTBInstructionStepGenerator(),
+            RSTBTextFieldStepGenerator(),
+            RSTBIntegerStepGenerator(),
+            RSTBDecimalStepGenerator(),
+            RSTBTimePickerStepGenerator(),
+            RSTBFormStepGenerator(),
+            RSTBDatePickerStepGenerator(),
+            RSTBSingleChoiceStepGenerator(),
+            RSTBMultipleChoiceStepGenerator(),
+            RSTBBooleanStepGenerator(),
+            RSTBPasscodeStepGenerator(),
+            RSTBScaleStepGenerator()
+        ]
+    }
+    
+    // Make sure to include all step generators needed for your survey steps here also
+    open class var answerFormatGeneratorServices:  [RSTBAnswerFormatGenerator] {
+        return [
+            RSTBLocationStepGenerator(),
+            RSTBTextFieldStepGenerator(),
+            RSTBSingleChoiceStepGenerator(),
+            RSTBIntegerStepGenerator(),
+            RSTBDecimalStepGenerator(),
+            RSTBTimePickerStepGenerator(),
+            RSTBDatePickerStepGenerator(),
+            RSTBScaleStepGenerator()
+        ]
+    }
+    
+    open class var elementGeneratorServices: [RSTBElementGenerator] {
+        return [
+            RSTBElementListGenerator(),
+            RSTBElementFileGenerator(),
+            RSTBElementSelectorGenerator()
+        ]
+    }
+    
+    // Make sure to include any result transforms for custom steps here
+    open class var resultsTransformers: [RSRPFrontEndTransformer.Type] {
+        return [
+            YADLFullRaw.self,
+            YADLSpotRaw.self,
+            CTFBARTSummaryResultsTransformer.self,
+            CTFDelayDiscountingRawResultsTransformer.self
+        ]
+    }
+    
+    /**
+     Convenience method for transitioning to the given view controller as the main window
+     rootViewController.
+     */
+    open func transition(toRootViewController: UIViewController, animated: Bool, completion: ((Bool) -> Swift.Void)? = nil) {
+        guard let window = self.window else { return }
+        if (animated) {
+            let snapshot:UIView = (self.window?.snapshotView(afterScreenUpdates: true))!
+            toRootViewController.view.addSubview(snapshot);
+            
+            self.window?.rootViewController = toRootViewController;
+            
+            UIView.animate(withDuration: 0.3, animations: {() in
+                snapshot.layer.opacity = 0;
+            }, completion: {
+                (value: Bool) in
+                snapshot.removeFromSuperview()
+                completion?(value)
+            })
+        }
+        else {
+            window.rootViewController = toRootViewController
+            completion?(true)
+        }
+    }
+    
+    //utilities
+    static func loadSchedule(filename: String) -> RSAFSchedule? {
+        guard let json = AppDelegate.getJson(forFilename: filename) as? JSON else {
+            return nil
+        }
+        
+        return RSAFSchedule(json: json)
+    }
+    
+    static func loadScheduleItem(filename: String) -> RSAFScheduleItem? {
+        guard let json = AppDelegate.getJson(forFilename: filename) as? JSON else {
+            return nil
+        }
+        
+        return RSAFScheduleItem(json: json)
+    }
+    
+    static func loadActivity(filename: String) -> JSON? {
+        return AppDelegate.getJson(forFilename: filename) as? JSON
+    }
+    
+    static func getJson(forFilename filename: String, inBundle bundle: Bundle = Bundle.main) -> JsonElement? {
+        
+        guard let filePath = bundle.path(forResource: filename, ofType: "json")
+            else {
+                assertionFailure("unable to locate file \(filename)")
+                return nil
+        }
+        
+        guard let fileContent = try? Data(contentsOf: URL(fileURLWithPath: filePath))
+            else {
+                assertionFailure("Unable to create NSData with content of file \(filePath)")
+                return nil
+        }
+        
+        let json = try! JSONSerialization.jsonObject(with: fileContent, options: JSONSerialization.ReadingOptions.mutableContainers)
+        
+        return json as JsonElement?
+    }
+    
+
+
 
     func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
@@ -41,53 +258,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
         // Saves changes in the application's managed object context before the application terminates.
-        self.saveContext()
+       
     }
 
-    // MARK: - Core Data stack
-
-    lazy var persistentContainer: NSPersistentContainer = {
-        /*
-         The persistent container for the application. This implementation
-         creates and returns a container, having loaded the store for the
-         application to it. This property is optional since there are legitimate
-         error conditions that could cause the creation of the store to fail.
-        */
-        let container = NSPersistentContainer(name: "ResearchSuite_simple_demo")
-        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
-            if let error = error as NSError? {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                 
-                /*
-                 Typical reasons for an error here include:
-                 * The parent directory does not exist, cannot be created, or disallows writing.
-                 * The persistent store is not accessible, due to permissions or data protection when the device is locked.
-                 * The device is out of space.
-                 * The store could not be migrated to the current model version.
-                 Check the error message to determine what the actual problem was.
-                 */
-                fatalError("Unresolved error \(error), \(error.userInfo)")
-            }
-        })
-        return container
-    }()
-
-    // MARK: - Core Data Saving support
-
-    func saveContext () {
-        let context = persistentContainer.viewContext
-        if context.hasChanges {
-            do {
-                try context.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nserror = error as NSError
-                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
-            }
-        }
-    }
-
+   
 }
 

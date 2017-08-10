@@ -1,0 +1,29 @@
+{
+    "type": "recurring",
+    "identifier": "sampleOnboardingSurvey",
+    "title": "Onboarding Survey",
+    "guid": "onboarding_survey-1",
+    "activity": {
+        "type"      : "elementList",
+        "identifier": "sampleOnboardingSurvey",
+        "elements"   : [
+                        {
+                        "identifier":"question_1",
+                        "type":"multipleChoiceText",
+                        "text":"How is your day going?",
+                        "items": [
+                                  {
+                                  "prompt": "Great!",
+                                  "value": "great"
+                                  },
+                                  {
+                                  "prompt": "Not so great",
+                                  "value": "not so great"
+                                  }
+                                  ]
+                        }
+                        ]
+    },
+    "resultTransforms": []
+}
+
