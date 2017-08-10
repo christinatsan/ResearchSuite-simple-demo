@@ -1,0 +1,6 @@
+framework module Pods_ResearchSuite_simple_demo {
+  umbrella header "Pods-ResearchSuite-simple-demo-umbrella.h"
+
+  export *
+  module * { export * }
+}
