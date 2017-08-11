@@ -2,6 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSMotionUsageDescription</key>
+	<string>motion usage</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>need microphone</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>health update usage</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>health share usage</string>
+	<key>NSCameraUsageDescription</key>
+	<string>need camera</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>

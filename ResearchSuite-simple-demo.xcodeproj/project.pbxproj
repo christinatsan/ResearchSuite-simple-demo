@@ -20,6 +20,8 @@
 		CFBF92491F3CB347004FA35E /* sampleDailySurvey.json in Resources */ = {isa = PBXBuildFile; fileRef = CFBF92481F3CB347004FA35E /* sampleDailySurvey.json */; };
 		CFBF924B1F3CB361004FA35E /* signIn.json in Resources */ = {isa = PBXBuildFile; fileRef = CFBF924A1F3CB361004FA35E /* signIn.json */; };
 		CFBF924D1F3CB664004FA35E /* OMHClient.plist in Resources */ = {isa = PBXBuildFile; fileRef = CFBF924C1F3CB664004FA35E /* OMHClient.plist */; };
+		CFBF927E1F3CEBD2004FA35E /* DailySurveyResult+OMHDatapoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFBF927D1F3CEBD2004FA35E /* DailySurveyResult+OMHDatapoint.swift */; };
+		CFBF92801F3CEBEF004FA35E /* DailySurveyResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFBF927F1F3CEBEF004FA35E /* DailySurveyResult.swift */; };
 		CFFA9C991F3CA83300566635 /* RSStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFFA9C981F3CA83300566635 /* RSStore.swift */; };
 		CFFA9C9F1F3CA9AD00566635 /* Onboarding.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CFFA9C9E1F3CA9AD00566635 /* Onboarding.storyboard */; };
 /* End PBXBuildFile section */
@@ -55,6 +57,8 @@
 		CFBF92481F3CB347004FA35E /* sampleDailySurvey.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = sampleDailySurvey.json; sourceTree = "<group>"; };
 		CFBF924A1F3CB361004FA35E /* signIn.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = signIn.json; sourceTree = "<group>"; };
 		CFBF924C1F3CB664004FA35E /* OMHClient.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = OMHClient.plist; sourceTree = "<group>"; };
+		CFBF927D1F3CEBD2004FA35E /* DailySurveyResult+OMHDatapoint.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "DailySurveyResult+OMHDatapoint.swift"; sourceTree = "<group>"; };
+		CFBF927F1F3CEBEF004FA35E /* DailySurveyResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DailySurveyResult.swift; sourceTree = "<group>"; };
 		CFFA9C981F3CA83300566635 /* RSStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RSStore.swift; sourceTree = "<group>"; };
 		CFFA9C9E1F3CA9AD00566635 /* Onboarding.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Onboarding.storyboard; sourceTree = "<group>"; };
 		DACB56C23F42826BEFF2C4BD /* Pods_ResearchSuite_simple_demo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_ResearchSuite_simple_demo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -130,6 +134,8 @@
 				CF11F9B31F3BB05200ED8759 /* MainViewController.swift */,
 				CFFA9C981F3CA83300566635 /* RSStore.swift */,
 				CFBF92441F3CB071004FA35E /* OnboardingViewController.swift */,
+				CFBF927D1F3CEBD2004FA35E /* DailySurveyResult+OMHDatapoint.swift */,
+				CFBF927F1F3CEBEF004FA35E /* DailySurveyResult.swift */,
 			);
 			path = "ResearchSuite-simple-demo";
 			sourceTree = "<group>";
@@ -393,7 +399,9 @@
 			files = (
 				CF11F9B41F3BB05200ED8759 /* MainViewController.swift in Sources */,
 				CF11F9B21F3BB05200ED8759 /* AppDelegate.swift in Sources */,
+				CFBF92801F3CEBEF004FA35E /* DailySurveyResult.swift in Sources */,
 				CFFA9C991F3CA83300566635 /* RSStore.swift in Sources */,
+				CFBF927E1F3CEBD2004FA35E /* DailySurveyResult+OMHDatapoint.swift in Sources */,
 				CFBF92451F3CB071004FA35E /* OnboardingViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

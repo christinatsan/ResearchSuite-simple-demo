@@ -24,6 +24,15 @@
                         }
                         ]
     },
-    "resultTransforms": []
+    "resultTransforms": [
+                         {
+                         "transform": "DailySurvey",
+                         "inputMapping": [
+                                          {"stepIdentifier":"question_1", "parameter":"question_1"}
+                                         
+                                          ]
+                         }
+                         ]
+
 }
 
